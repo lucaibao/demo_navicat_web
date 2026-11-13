@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GaussDB Web SQL Console</title>
+    <link rel="icon" href="data:,">
+    <link rel="stylesheet" href="/static/css/main.css">
+</head>
+<body>
+    <div class="container">
+        <!-- 顶部工具栏 -->
+        <div class="toolbar">
+            <button id="toggleBtn">展开配置 ▼</button>
+            <button id="runBtn">▶ 执行SQL</button>
+            <button id="cancelBtn">■ 取消任务</button>
+            <button id="fullscreenBtn">全屏</button>
+        </div>
+
+        <!-- 连接配置面板 -->
+        <div id="configPanel" class="config-panel">
+            <div class="form-row">
+                <label>数据库类型</label>
+                <select id="dbType">
+                    <option value="gaussdb">GaussDB</option>
+                    <option value="postgresql">PostgreSQL</option>
+                </select>
+            </div>
+            <div class="form-row">
+                <label>Host</label>
+                <select id="hostKey">
+                    <option value="">-- 手动填写 --</option>
+                </select>
+                <input type="text" id="host" placeholder="127.0.0.1">
+            </div>
+            <div class="form-row">
+                <label>Port</label>
+                <select id="portKey">
+                    <option value="">-- 手动填写 --</option>
+                </select>
+                <input type="number" id="port" placeholder="5432">
+            </div>
+            <div class="form-row">
+                <label>User</label>
+                <select id="userKey">
+                    <option value="">-- 手动填写 --</option>
+                </select>
+                <input type="text" id="user" placeholder="root">
+            </div>
+            <div class="form-row">
+                <label>Password</label>
+                <select id="pwdKey">
+                    <option value="">-- 手动填写 --</option>
+                </select>
+                <input type="password" id="pwd" placeholder="密码">
+            </div>
+            <div class="form-row">
+                <label>Database</label>
+                <select id="dbnameKey">
+                    <option value="">-- 手动填写 --</option>
+                </select>
+                <input type="text" id="dbname" placeholder="数据库名">
+            </div>
+            <div class="form-row">
+                <label>Schema</label>
+                <select id="schemaKey">
+                    <option value="">-- 手动填写 --</option>
+                </select>
+                <input type="text" id="schema" placeholder="public">
+            </div>
+            <div class="form-row">
+                <label>最大返回行数</label>
+                <input type="number" id="maxRows" placeholder="1000">
+            </div>
+            <div class="form-row">
+                <label>超时(秒)</label>
+                <input type="number" id="timeoutSec" placeholder="30">
+            </div>
+        </div>
+
+        <!-- 主体分割区域 -->
+        <div id="splitWrap" class="split-wrap">
+            <!-- 左侧SQL输入 -->
+            <div id="leftPane" class="left-pane">
+                <textarea id="sqlTextarea" placeholder="在此输入SQL，选中一段可以单独执行..." spellcheck="false">select 1;</textarea>
+            </div>
+            <!-- 分割拖拽条 -->
+            <div id="splitter" class="splitter"></div>
+            <!-- 右侧结果面板 -->
+            <div id="rightPane" class="right-pane">
+                <div class="empty-tip">执行结果将展示在这里</div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/js/sql_console.js"></script>
+</body>
+</html>

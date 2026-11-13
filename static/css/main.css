@@ -1,0 +1,184 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: "Microsoft Yahei", Consolas, monospace;
+}
+html, body {
+    height: 100%;
+    overflow: hidden;
+    background-color: #f5f7fa;
+}
+.container {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+/* 顶部工具栏 */
+.toolbar {
+    padding: 10px 14px;
+    background: #2c3e50;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+.toolbar button {
+    padding: 6px 14px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+}
+#runBtn {
+    background-color: #27ae60;
+    color: white;
+}
+#cancelBtn {
+    background-color: #e74c3c;
+    color: white;
+}
+#toggleBtn, #fullscreenBtn {
+    background-color: #3498db;
+    color: white;
+}
+
+/* 配置面板 */
+.config-panel {
+    height: 0;
+    overflow: hidden;
+    background: #ffffff;
+    border-bottom: 1px solid #ddd;
+    transition: height 0.25s ease;
+    padding: 0 16px;
+}
+.config-panel.open {
+    height: 220px;
+    padding: 12px 16px;
+}
+.form-row {
+    display: inline-flex;
+    align-items: center;
+    margin-right: 12px;
+    margin-bottom: 8px;
+    gap:4px;
+}
+.form-row label {
+    font-size:13px;
+    width:60px;
+}
+.form-row select {
+    width:130px;
+    padding:4px 6px;
+    border:1px solid #ccc;
+    border-radius:3px;
+}
+.form-row input {
+    width:130px;
+    padding:4px 6px;
+    border:1px solid #ccc;
+    border-radius:3px;
+}
+.form-row input:disabled{
+    background:#eee;
+    color:#888;
+}
+
+/* 左右分割容器 */
+.split-wrap {
+    flex:1;
+    display:flex;
+    width:100%;
+    overflow: hidden;
+}
+.left-pane {
+    width: 50%;
+    height:100%;
+    background: #fff;
+}
+#sqlTextarea {
+    width: 100%;
+    height: 100%;
+    border: none;
+    outline: none;
+    padding: 10px;
+    font-family: Consolas, monospace;
+    font-size: 14px;
+    resize: none;
+    box-sizing: border-box;
+    line-height:1.5;
+}
+.splitter {
+    width:6px;
+    background:#bdc3c7;
+    cursor: col-resize;
+}
+.right-pane {
+    flex:1;
+    height:100%;
+    padding:10px;
+    overflow:auto;
+    background:#fff;
+    border-left:1px solid #eee;
+}
+.empty-tip {
+    color:#999;
+    margin-top:20px;
+    text-align:center;
+}
+
+/* 结果样式 */
+.sql-item {
+    margin-bottom:16px;
+    border:1px solid #e4e7ed;
+    border-radius:6px;
+    overflow:hidden;
+}
+.sql-title {
+    background:#f0f2f5;
+    padding:6px 10px;
+    font-size:13px;
+    color:#333;
+    word-break:break-all;
+}
+.sql-status {
+    padding:4px 10px;
+    font-size:13px;
+}
+.sql-status.ok {
+    background:#e6f7ef;
+    color:#009458;
+}
+.sql-status.err {
+    background:#fef0f0;
+    color:#c03636;
+}
+.result-table {
+    width:100%;
+    border-collapse: collapse;
+    font-size:13px;
+}
+.result-table th, .result-table td {
+    border:1px solid #eee;
+    padding:6px 8px;
+    text-align:left;
+}
+.result-table th {
+    background:#fafafa;
+}
+.result-tip {
+    padding:6px 10px;
+    font-size:12px;
+    color:#666;
+    background:#fafafa;
+}
+.raw-result {
+    padding:10px;
+    font-family:Consolas;
+    font-size:13px;
+    white-space:pre-wrap;
+}
+.err {
+    color:#c03636;
+    padding:8px;
+}
