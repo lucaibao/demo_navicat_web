@@ -159,6 +159,11 @@ function appendResultHtml(sqlText, statusText, rs) {
   resultBox.scrollTop = resultBox.scrollHeight;
 }
 
+// 清空右侧结果面板函数
+function clearResult() {
+  resultBox.innerHTML = "";
+}
+
 // 轮询等待任务执行完成
 async function waitTaskDone(taskId) {
   while (true) {
@@ -193,22 +198,16 @@ async function runSql() {
     db_type: document.getElementById('dbType').value,
     host_key: document.getElementById('hostKey').value,
     host: document.getElementById('host').value,
-
     port_key: document.getElementById('portKey').value,
     port: document.getElementById('port').value,
-
     user_key: document.getElementById('userKey').value,
     user: document.getElementById('user').value,
-
     pwd_key: document.getElementById('pwdKey').value,
     password: document.getElementById('pwd').value,
-
     dbname_key: document.getElementById('dbnameKey').value,
     database: document.getElementById('dbname').value,
-
     schema_key: document.getElementById('schemaKey').value,
     schema: document.getElementById('schema').value,
-
     timeout_sec: timeoutVal,
     max_rows: maxRowsVal,
     confirm_risk: false
@@ -252,10 +251,13 @@ async function runSql() {
         currentTaskId = data.task_id;
       }
       const taskResult = await waitTaskDone(currentTaskId);
-      if (taskResult.status === "success") {
+      console.log("后端返回任务结果：", taskResult);
+      if (taskResult.status === "finished") {
         appendResultHtml(oneSql, "✅ 执行成功", taskResult.result);
-      } else {
+      } else if (taskResult.status === "failed") {
         appendResultHtml(oneSql, `❌ ${taskResult.status}`, taskResult.error);
+      } else {
+        appendResultHtml(oneSql, `❌ 未知状态:${taskResult.status}`, taskResult);
         break;
       }
     } catch (err) {
@@ -280,4 +282,6 @@ async function cancelTask() {
 document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('runBtn').onclick = runSql;
   document.getElementById('cancelBtn').onclick = cancelTask;
+  // 绑定清空按钮
+  document.getElementById('clearBtn').onclick = clearResult;
 });

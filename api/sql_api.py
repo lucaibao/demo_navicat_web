@@ -1,6 +1,5 @@
 import os
 import logging
-import time
 import uuid
 import threading
 from typing import Optional, Dict, Any
@@ -15,7 +14,9 @@ logging.basicConfig(
 )
 logger = logging.getLogger("sql-console")
 
+# 内存任务池
 task_map: Dict[str, Dict[str, Any]] = {}
+
 
 class SqlRunRequest(BaseModel):
     db_type: str
@@ -58,10 +59,11 @@ async def sql_run(req: SqlRunRequest):
     real_db = get_env_or_input(req.dbname_key, req.database)
     real_schema = get_env_or_input(req.schema_key, req.db_schema)
 
+    # 端口转换
     try:
         real_port = int(real_port_str) if real_port_str else 3306
     except ValueError:
-        logger.warning(f"端口解析失败，收到值：{real_port_str}，使用默认3306")
+        logger.warning(f"端口解析失败，输入值：{real_port_str}，默认使用3306")
         real_port = 3306
 
     logger.info("===== 收到SQL执行请求 =====")
@@ -72,29 +74,97 @@ async def sql_run(req: SqlRunRequest):
     logger.info(f"待执行SQL:\n{req.sql}")
 
     task_id = str(uuid.uuid4())
+    # 存入db_type，子线程判断使用
     task_map[task_id] = {
         "status": "running",
         "sql": req.sql,
+        "db_type": req.db_type,
+        "real_host": real_host,
+        "real_port": real_port,
+        "real_user": real_user,
+        "real_pwd": real_pwd,
+        "real_db": real_db,
+        "real_schema": real_schema,
         "result": None,
         "error": None
     }
 
     def run_sql_task():
+        task = task_map[task_id]
+        sql = task["sql"]
+        db_type = task["db_type"]
+        h = task["real_host"]
+        p = task["real_port"]
+        u = task["real_user"]
+        pw = task["real_pwd"]
+        db = task["real_db"]
+
         try:
-            # --------------------------
-            # 这里后续替换成真实数据库执行代码
-            time.sleep(1.2)
-            task_map[task_id]["status"] = "finished"
-            task_map[task_id]["result"] = {"columns": ["?column?"], "rows": [[1]]}
+            if db_type in ("mysql", "gaussdb"):
+                # mysql / GaussDB M模式，使用pymysql
+                import pymysql
+                conn = pymysql.connect(
+                    host=h,
+                    port=p,
+                    user=u,
+                    password=pw,
+                    database=db,
+                    charset="utf8mb4"
+                )
+                try:
+                    cur = conn.cursor()
+                    cur.execute(sql)
+                    if cur.description:
+                        # 查询语句，返回列+行
+                        columns = [col[0] for col in cur.description]
+                        rows = cur.fetchall()
+                        task["result"] = {"columns": columns, "rows": rows}
+                    else:
+                        # DML语句
+                        task["result"] = {"msg": f"执行成功，影响行数：{cur.rowcount}"}
+                    conn.commit()
+                    logger.info(f"task_id={task_id}, 输出结果：{task}")
+                finally:
+                    cur.close()
+                    conn.close()
+
+            # ========== GaussDB PG原生模式 暂时注释，后续需要再放开 ==========
+            # elif db_type == "gaussdb_pg":
+            #     import psycopg2
+            #     import psycopg2.extras
+            #     conn_params = {
+            #         "host": h,
+            #         "port": p,
+            #         "user": u,
+            #         "password": pw,
+            #         "dbname": db
+            #     }
+            #     if task["real_schema"]:
+            #         conn_params["options"] = f"-c search_path={task['real_schema']}"
+            #     with psycopg2.connect(**conn_params) as pg_conn:
+            #         with pg_conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+            #             cur.execute(sql)
+            #             if cur.description:
+            #                 columns = [col.name for col in cur.description]
+            #                 rows = []
+            #                 for row in cur.fetchall():
+            #                     row_data = [row[c] for c in columns]
+            #                     rows.append(row_data)
+            #                 task["result"] = {"columns": columns, "rows": rows}
+            #             else:
+            #                 task["result"] = {"msg": f"执行成功，影响行数：{cur.rowcount}"}
+            # =================================================================
+
+            task["status"] = "finished"
             logger.info(f"task {task_id} 执行完成")
         except Exception as e:
-            task_map[task_id]["status"] = "failed"
-            task_map[task_id]["error"] = str(e)
-            logger.error(f"task {task_id} 执行异常：{e}")
+            task["status"] = "failed"
+            task["error"] = str(e)
+            logger.error(f"task {task_id} 执行异常：{e}", exc_info=True)
 
     t = threading.Thread(target=run_sql_task, daemon=True)
     t.start()
-    logger.info(f"SQL任务创建成功，task_id={task_id}")
+    logger.info(f"任务创建成功，task_id={task_id}")
     return {"task_id": task_id}
 
 
@@ -113,7 +183,7 @@ async def get_task_status(task_id: str):
 
 @router.post("/api/sql/cancel/{task_id}")
 async def cancel_task(task_id: str):
-    logger.info(f"请求取消任务 task_id={task_id}")
+    logger.info(f"取消任务 task_id={task_id}")
     task = task_map.get(task_id)
     if task:
         task["status"] = "canceled"
